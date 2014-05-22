@@ -9,9 +9,10 @@ start_point = int(lines[0],16)
 
 memory = dict()		# make original input as dict
 res = dict()		# make new output as dict
-val=[]
+val=[]			# empty list
 count=0
 flag =dict()		# make flag to differenciate string and integer
+
 
 # read values and address to memory
 for l in lines[1:]:
@@ -22,10 +23,12 @@ for l in lines[1:]:
 	except:
 		pass
 
+
 # sort and extract value
 memory=sorted(memory.items(),key=lambda memory:memory[0])
 for n in range(len(memory)):
 	val.append(memory[n][1])
+
 
 # change value to binary and strip '0b'
 for m in range(len(val)):
@@ -36,18 +39,19 @@ for m in range(len(val)):
 for n in range(len(val)):
 	temp = []
 	tem = []
-	count+=1
-	rd=int(val[n][16:20],2)
-	rn=int(val[n][12:16],2)
+	count+=1			# count for pc
+	rd=int(val[n][16:20],2)		# extract rd register
+	rn=int(val[n][12:16],2)		# extract rn register
+
 
 	# mov
 	if val[n][7:11] == '1101':
 		
-		if val[n][6]=='0':
+		if val[n][6]=='0':	# operand 2 is reg 
 			if val[n][20:28]!='00000000':
 				if val[n][27]=='0':
-					amount=int(val[n][20:25],2)
-					rm=int(val[n][28:32],2)
+					amount=int(val[n][20:25],2)	# shift amount
+					rm=int(val[n][28:32],2)		# extract rm register
 
 					# lsl
 					if val[n][25:27]=='00':
@@ -60,14 +64,14 @@ for n in range(len(val)):
 					# lsr
 					elif val[n][25:27]=='01':
 			
-						temb= bin(res[rm]).lstrip('0b')
+						temb= bin(res[rm]).lstrip('0b')	
 						l=8-len(temb)
-						zeros="0"*l
+						zeros="0"*l		
 						temb=zeros+temb
-						tema= temb[:len(temb)-amount]
+						tema= temb[:len(temb)-amount]	# subtract remainder
 						l=8-len(tema)
 						zeros="0"*l
-						res[rd]=zeros+tema
+						res[rd]=zeros+tema	# make it as string
 						
 						flag[rd] = '1'
 
@@ -95,11 +99,13 @@ for n in range(len(val)):
 			else:
 				rm=int(val[n][24:32],2)
 				res[rd]=res[rm]
+
 				flag[rd] = '0'
 
-		else:
+		else:		# operand 2 is not reg
 			rm=int(val[n][24:32],2)
 			res[rd]=rm
+
 			flag[rd] = '0'
 
 
@@ -199,14 +205,16 @@ for n in range(len(val)):
 		else:
 			rm=int(val[n][24:32],2)
 			res[rd]=rm-res[rn]
+
 			flag[rd] = '0'
 
 	#eor
 	elif val[n][7:11] == '0001':
+
 		tem_rn = bin(res[rn]).lstrip('0b')
 		l=8-len(tem_rn)
 		zeros="0"*l
-		tem_rn=zeros+tem_rn
+		tem_rn=zeros+tem_rn		# make value to binary string
 		
 		if val[n][6] == '0':
 			rm=int(val[n][24:32],2)
@@ -222,6 +230,7 @@ for n in range(len(val)):
 					temp.append(1);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 		else:
 			rm=int(val[n][24:32],2)
@@ -237,10 +246,12 @@ for n in range(len(val)):
 					temp.append(1);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 
 	#and
 	elif val[n][7:11] == '0000':
+
 		tem_rn = bin(res[rn]).lstrip('0b')
 		l=8-len(tem_rn)
 		zeros="0"*l
@@ -259,6 +270,7 @@ for n in range(len(val)):
 					temp.append(0);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 		else:
 			rm=int(val[n][24:32],2)
@@ -273,10 +285,12 @@ for n in range(len(val)):
 					temp.append(0);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 	
 	#orr
 	elif val[n][7:11] == '1100':
+
 		tem_rn = bin(res[rn]).lstrip('0b')
 		l=8-len(tem_rn)
 		zeros="0"*l
@@ -294,6 +308,7 @@ for n in range(len(val)):
 					temp.append(1);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp	
+
 			flag[rd] = '1'
 		else:
 			rm = int(val[n][24:32],2)
@@ -308,10 +323,12 @@ for n in range(len(val)):
 					temp.append(1);
 			temp = ''.join(map(str,temp))
 			res[rd] = temp	
+
 			flag[rd] = '1'
 
 	#mvn
 	elif val[n][7:11] == '1111':
+
 		if val[n][6] == '0':
 			rm=int(val[n][24:32],2)
 			tem_rm = bin(res[rm]).lstrip('0b')
@@ -325,6 +342,7 @@ for n in range(len(val)):
 					temp.append(0)
 			temp =''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 		else:
 			rm = int(val[n][24:32],2)
@@ -339,10 +357,12 @@ for n in range(len(val)):
 					temp.append(0)
 			temp =''.join(map(str,temp))
 			res[rd] = temp
+
 			flag[rd] = '1'
 
 	#bic
 	elif val[n][7:11] == '1110':
+
 		tem_rn = bin(res[rn]).lstrip('0b')
 		l=8-len(tem_rn)
 		zeros="0"*l
@@ -368,10 +388,12 @@ for n in range(len(val)):
 			else:
 				tem.append(0);
 		tem = ''.join(map(str,tem))
-		flag[rd] = '1'
 		res[rd] = tem	
 
-	else:
+		flag[rd]='1'
+
+
+	else:		# r15 pc register
 		n=15
 		flag[n] = '0'
 		res[n] = start_point + (count-1)*4+8
