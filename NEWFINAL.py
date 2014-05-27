@@ -119,7 +119,7 @@ for k in omemory.keys():
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
-			res[rd] = operand+rm
+			res[rd] = operand+rn
 	
 			flag[rd] = '0'
 
