@@ -45,6 +45,7 @@ for m in omemory.keys():
 	rd = int(omemory[k][16:20],2)
 	rn = int(omemory[k][12:16],2)
 	shift=omemory[k][25:27]
+	print 'frn',rn
 	# branch
 	if branch == '101':
 		if linkbit == '0':
@@ -64,10 +65,13 @@ for m in omemory.keys():
 		branch = omemory[k][4:7]
 		linkbit = omemory[k][7]
 		I=omemory[k][6]	
+		print "im:" +I	
 		opcode = omemory[k][7:11]
 		rd = int(omemory[k][16:20],2)
 		rn = int(omemory[k][12:16],2)
 		shift=omemory[k][25:27]
+	print 'lrn',rn
+	print "adr:" + k
 	# mov
 	if opcode=='1101':
 		if I=='0':	# operand is register
@@ -83,6 +87,7 @@ for m in omemory.keys():
 		print res[rd]
 	# add
 	elif opcode=='0100':
+		#print I
 		if I=='0':	# operand is register	
 			rm = int(omemory[k][28:32],2)		
 			res[rd]=res[rm]+res[rn]
@@ -90,6 +95,8 @@ for m in omemory.keys():
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)	
+			print 'op',operand
+			print 'rn',rn
 			res[rd] = operand+res[rn]
 	
 			flag[rd] = '0'

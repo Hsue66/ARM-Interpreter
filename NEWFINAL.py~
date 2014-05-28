@@ -40,16 +40,15 @@ for m in omemory.keys():
 		
 	else:
 		k=hex(int(k,16)+4).lstrip('0x')
-	try:
-		branch = omemory[k][4:7]
-		linkbit = omemory[k][7]	
-		I=omemory[k][6]		
-		opcode = omemory[k][7:11]
-		rd = int(omemory[k][16:20],2)
-		rn = int(omemory[k][12:16],2)
-		shift=omemory[k][25:27]
-	except:
-		pass
+	
+	branch = omemory[k][4:7]
+	linkbit = omemory[k][7]	
+	I=omemory[k][6]		
+	opcode = omemory[k][7:11]
+	rd = int(omemory[k][16:20],2)
+	rn = int(omemory[k][12:16],2)
+	shift=omemory[k][25:27]
+
 	# branch
 	if branch == '101':
 		if linkbit == '0':
@@ -65,31 +64,14 @@ for m in omemory.keys():
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
 				#print imm24
 		else:
-			res[14] = k.zfill(8)
-			flag[14] = '1'
-			# branch offset +
-			if omemory[k][8] == '0':
-				imm24 = int(omemory[k][8:],2)
-				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24
-			# branch offset - 2's complement
-			else:
-				imm24 = int(omemory[k][8:],2)
-				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
-				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24	
-			
-		try:
-			branch = omemory[k][4:7]
-			linkbit = omemory[k][7]
-			I=omemory[k][6]	
-			opcode = omemory[k][7:11]
-			rd = int(omemory[k][16:20],2)
-			rn = int(omemory[k][12:16],2)
-			shift=omemory[k][25:27]
-		except: 
-			pass
-			
+			print 'bl'
+		branch = omemory[k][4:7]
+		linkbit = omemory[k][7]
+		I=omemory[k][6]	
+		opcode = omemory[k][7:11]
+		rd = int(omemory[k][16:20],2)
+		rn = int(omemory[k][12:16],2)
+		shift=omemory[k][25:27]
 	# mov
 	if opcode=='1101':
 		if I=='0':	# operand is register
@@ -234,7 +216,7 @@ for m in omemory.keys():
 			flag[rd] = '0'
 
 	# and
-	elif opcode == '0000' and branch != '101':
+	elif opcode == '0000':
 	
 		if I=='0':	#operand is register
 			rm = int(omemory[k][28:32],2)
@@ -316,14 +298,13 @@ for m in omemory.keys():
 		res[n] = (int(k,16)+ 8)
 
 		flag[n] = '0'
-	else:
-		n=15
-		res[n] = (int(k,16)+8)
-		flag[n] = '0'
+		break;
 
 
 reg = res.items()	# make res as list
 reg.sort()		# sort res list
+
+
 
 # initialize unexist register
 for k in range(16):
