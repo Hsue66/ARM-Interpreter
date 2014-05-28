@@ -42,7 +42,7 @@ for k in omemory.keys():
 	rn = int(omemory[k][12:16],2)
 	shift=omemory[k][25:27]
 
-	s = omemory[k][11]
+	S = omemory[k][11]
 
 	cond=omemory[k][0:4]
 
@@ -56,8 +56,8 @@ for k in omemory.keys():
 		else: continue
 	#ne
 	elif cond == '0001':
-		if (cmptemp >0)|(cmptemp<0):pass
-		else: continue
+		if cmptemp == 0: continue
+		else: pass
 	#ge
 	elif cond == '1010':
 		if cmptemp >= 0: pass
@@ -80,6 +80,7 @@ for k in omemory.keys():
 	#processing
 	# cmp
 	if opcode=='1010':
+		cmptemp = 0
 		if I=='0':	# operand is register
 			rm = int(omemory[k][28:32],2)
 			
@@ -201,23 +202,32 @@ for k in omemory.keys():
 				if shift=='00':
 					result=res[rm]<<amount
 					res[rd]=res[rn]-result
-
+					if S == '1':
+						cmptemp = res[rd]
+					
 					flag[rd] = '0'
 					
 				# asr
 				elif shift=='10':
 					result=res[rm]>>amount
 					res[rd]=res[rn]-result
-
+					if S =='1':
+						cmptemp = res[rd]
+					
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rn]-res[rm]
+				if S == '1':
+					cmptemp = res[rd]
+				
 				flag[rd] = '0'
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 			res[rd] = res[rn]-operand
-	
+			if S == '1':
+				cmptemp = res[rd]
+			
 			flag[rd] = '0'
 
 	# rsb
@@ -267,10 +277,10 @@ reg.sort()		# sort res list
 
 
 # initialize unexist register
-for k in range(16):
-	if k !=reg[k][0]:
-		flag[k]='0'
-		reg.insert(k,(k,0))
+#for k in range(16):
+#	if k !=reg[k][0]:
+#		flag[k]='0'
+#		reg.insert(k,(k,0))
 
 
 # output format
@@ -278,7 +288,7 @@ showlist = ['r0:','r1:','r2:','r3:','r4:','r5:','r6:','r7:','r8:',
 	'r9:','r10:','r11:','r12:','r13 sp:','r14 lr:','r15 pc:']
 
 # display registers and values
-print cmptemp
+#print cmptemp
 
 for i in range(len(showlist)):
 	if flag[i][0]=='0':	
