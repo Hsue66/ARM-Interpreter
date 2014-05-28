@@ -28,7 +28,7 @@ omemory=collections.OrderedDict(sorted(memory.items()))
 
 # change value to binary and strip '0b'
 for n in omemory:
-	omemory[n]=bin(omemory[n]).lstrip('0b')
+	omemory[n]=bin(omemory[n]).lstrip('0b').zfill(32)
 
 # write new key(register) and value(result) to res
 for m in omemory.keys():
