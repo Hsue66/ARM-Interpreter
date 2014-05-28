@@ -28,7 +28,7 @@ omemory=collections.OrderedDict(sorted(memory.items()))
 
 # change value to binary and strip '0b'
 for n in omemory:
-	omemory[n]=bin(omemory[n]).lstrip('0b')
+	omemory[n]=bin(omemory[n]).lstrip('0b').zfill(32)
 
 #set cmptemp's base value
 cmptemp = 0
@@ -102,6 +102,8 @@ for k in omemory.keys():
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
+			print operand
+			print res[rn]
 			cmptemp = res[rn]-operand
 	
 	# mov
