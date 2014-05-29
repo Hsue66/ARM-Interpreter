@@ -31,25 +31,18 @@ omemory=collections.OrderedDict(sorted(memory.items()))
 for n in omemory:
 	omemory[n]=bin(omemory[n]).lstrip('0b')
 
-
-
 # write new key(register) and value(result) to res
 for m in omemory.keys():
 	if m == omemory.keys()[0]:
 		k=m
-		
 	else:
 		k=hex(int(k,16)+4).lstrip('0x')
-	try:
-		branch = omemory[k][4:7]
-		linkbit = omemory[k][7]	
-		I=omemory[k][6]		
-		opcode = omemory[k][7:11]
-		rd = int(omemory[k][16:20],2)
-		rn = int(omemory[k][12:16],2)
-		shift=omemory[k][25:27]
-	except:
-		pass
+
+	branch = omemory[k][4:7]
+	linkbit = omemory[k][7]	
+	
+	if omemory[k][8:] == '001011111111111100011110':
+		k = hex(int(res[14],16)+4).lstrip('0x')
 	# branch
 	if branch == '101':
 		if linkbit == '0':
@@ -57,13 +50,13 @@ for m in omemory.keys():
 			if omemory[k][8] == '0':
 				imm24 = int(omemory[k][8:],2)
 				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24
+
 			# branch offset - 2's complement
 			else:
 				imm24 = int(omemory[k][8:],2)
 				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24
+
 		else:
 			res[14] = k.zfill(8)
 			flag[14] = '1'
@@ -71,25 +64,20 @@ for m in omemory.keys():
 			if omemory[k][8] == '0':
 				imm24 = int(omemory[k][8:],2)
 				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24
+
 			# branch offset - 2's complement
 			else:
 				imm24 = int(omemory[k][8:],2)
 				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
-				#print imm24	
-			
-		try:
-			branch = omemory[k][4:7]
-			linkbit = omemory[k][7]
-			I=omemory[k][6]	
-			opcode = omemory[k][7:11]
-			rd = int(omemory[k][16:20],2)
-			rn = int(omemory[k][12:16],2)
-			shift=omemory[k][25:27]
-		except: 
-			pass
-			
+		#print k
+
+	I=omemory[k][6]	
+	opcode = omemory[k][7:11]
+	rd = int(omemory[k][16:20],2)
+	rn = int(omemory[k][12:16],2)
+	shift=omemory[k][25:27]
+	
 	# mov
 	if opcode=='1101':
 		if I=='0':	# operand is register
@@ -316,11 +304,12 @@ for m in omemory.keys():
 		res[n] = (int(k,16)+ 8)
 
 		flag[n] = '0'
+		break
 	else:
 		n=15
 		res[n] = (int(k,16)+8)
 		flag[n] = '0'
-
+		break
 
 reg = res.items()	# make res as list
 reg.sort()		# sort res list
@@ -341,5 +330,5 @@ for i in range(len(showlist)):
 	if flag[i][0]=='0':	
 		print '%-8s' % showlist[i],'%0.8x' % reg[i][1]
 	else:
-		print '%-8s' % showlist[i], reg[i][1]	
+		print '%-8s' % showlist[i], reg[i][1]
 
