@@ -171,21 +171,31 @@ for k in omemory.keys():
 					res[rd]=result+res[rn]
 
 					flag[rd] = '0'
+                                        if S =='1':
+                                                cmptemp = res[rd]
 					
 				# asr
 				elif shift=='10':
 					result=res[rm]>>amount
 					res[rd]=result+res[rn]
+                                        if S =='1':
+                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rm]+res[rn]
+                                if S =='1':
+                                	cmptemp = res[rd]
 				
 				flag[rd] = '0'
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 			res[rd] = operand+rn
+                        if S =='1':
+                                cmptemp = res[rd]
+
+
 	
 			flag[rd] = '0'
 
@@ -242,6 +252,8 @@ for k in omemory.keys():
 				if shift=='00':
 					result=res[rm]<<amount
 					res[rd]=result-res[rn]
+                                        if S =='1':
+                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 					
@@ -249,15 +261,23 @@ for k in omemory.keys():
 				elif shift=='10':
 					result=res[rm]>>amount
 					res[rd]=result-res[rn]
+                                        if S =='1':
+                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rm]-res[rn]
 				flag[rd] = '0'
+                                if S =='1':
+                                        cmptemp = res[rd]
+
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 			res[rd] = operand-res[rn]
+                        if S =='1':
+                                cmptemp = res[rd]
+
 	
 			flag[rd] = '0'
 	
