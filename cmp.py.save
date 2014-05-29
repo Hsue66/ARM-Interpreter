@@ -1,19 +1,15 @@
-import sys
-import collections
-
-
-# read input.txt
-lines = sys.stdin.readlines()
-
-# read first line as start_point 
-start_point = int(lines[0],16)
-
-
-memory = dict()		# make original input as dict
-res = dict()		# make new output as dict
-flag =dict()		# make flag to differenciate string and integer
-
-
+0000838cimport sys import collections
+    838c:	e3a00000
+    8390:	e3a01001
+    8394:	e3a02002# read input.txt lines = sys.stdin.readlines()
+    8398:	e3a03003
+    839c:	e3a04000# read first line as start_point start_point = 
+int(lines[0],16)
+    83a0:	e1510000
+    83a4: c2844004 memory = dict() # make original input as dict res = dict() # make 
+new output as dict flag =dict() # make flag to differenciate string and integer
+    83a8:	c1520003
+    83ac:	d0844003
 # read values and address to memory
 for l in lines[1:]:
 	try:
@@ -49,7 +45,7 @@ for k in omemory.keys():
 	#codition check
 
 	#always(normal processing instruction)
-	if cond == '1110': pass
+	if cond == '1101': pass
 	#eq
 	elif cond == '0000':
 		if cmptemp == 0: pass
@@ -171,35 +167,21 @@ for k in omemory.keys():
 					res[rd]=result+res[rn]
 
 					flag[rd] = '0'
-                                        if S =='1':
-                                                cmptemp = res[rd]
 					
 				# asr
 				elif shift=='10':
 					result=res[rm]>>amount
 					res[rd]=result+res[rn]
-                                        if S =='1':
-                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rm]+res[rn]
-                                if S =='1':
-                                	cmptemp = res[rd]
 				
 				flag[rd] = '0'
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
-<<<<<<< 95c5b9a5ecbac0af17f79ab5852f26c5e51b3981
 			res[rd] = operand+rn
-                        if S =='1':
-                                cmptemp = res[rd]
-
-
-=======
-			res[rd] = operand+res[rn]
->>>>>>> 3327cf0d774814ecf922dc37af6812040f42dc9c
 	
 			flag[rd] = '0'
 
@@ -256,8 +238,6 @@ for k in omemory.keys():
 				if shift=='00':
 					result=res[rm]<<amount
 					res[rd]=result-res[rn]
-                                        if S =='1':
-                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 					
@@ -265,23 +245,15 @@ for k in omemory.keys():
 				elif shift=='10':
 					result=res[rm]>>amount
 					res[rd]=result-res[rn]
-                                        if S =='1':
-                                                cmptemp = res[rd]
 
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rm]-res[rn]
 				flag[rd] = '0'
-                                if S =='1':
-                                        cmptemp = res[rd]
-
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 			res[rd] = operand-res[rn]
-                        if S =='1':
-                                cmptemp = res[rd]
-
 	
 			flag[rd] = '0'
 	
