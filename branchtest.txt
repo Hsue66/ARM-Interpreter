@@ -1,12 +1,36 @@
 0000838c
-    838c:	e3a00000
-    8390:	eaffffff
-    8394:	e3a01001
-    8398:	eaffffff
+    838c:	e3a00001
+    8390:	eb000003
+    8394:	e2800001
+    8398:	eb000003
     839c:	e2800001
-    83a0:	eaffffff
-    83a4:	e0802001
-    83a8:	eaffffff
-    83ac:	e3a0400a
-    83b0:	eaffffff
-    83b4:	ef000000
+    83a0:	ef000000
+    83a4:	e2800001
+    83a8:	e12fff1e
+    83ac:	e2400001
+    83b0:	e12fff1e
+    83b4:	e3a00005
+    83b8:	e12fff1e
+
+
+0000838c <br>:
+    838c:	e3a00001 	mov	r0, #1
+    8390:	eb000003 	bl	83a4 <ad>
+    8394:	e2800001 	add	r0, r0, #1
+    8398:	eb000003 	bl	83ac <su>
+    839c:	e2800001 	add	r0, r0, #1
+    83a0:	ef000000 	svc	0x00000000
+
+000083a4 <ad>:
+    83a4:	e2800001 	add	r0, r0, #1
+    83a8:	e12fff1e 	bx	lr
+
+000083ac <su>:
+    83ac:	e2400001 	sub	r0, r0, #1
+    83b0:	e12fff1e 	bx	lr
+
+000083b4 <mo>:
+    83b4:	e3a00005 	mov	r0, #5
+    83b8:	e12fff1e 	bx	lr
+
+

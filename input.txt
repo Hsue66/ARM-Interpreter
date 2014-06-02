@@ -43,3 +43,79 @@ sum 836c
     83b4:	e3084430 	movw	r4, #33840	; 0x8430
     83b8:	e3404000 	movt	r4, #0
 
+
+
+0000838c <sum>:
+    838c:	e3a00000 	mov	r0, #0
+    8390:	e3a01001 	mov	r1, #1
+    8394:	eaffffff 	b	8398 <l1>
+
+00008398 <l1>:
+    8398:	e0805001 	add	r5, r0, r1
+    839c:	eaffffff 	b	83a0 <l2>
+
+000083a0 <l2>:
+    83a0:	e2800001 	add	r0, r0, #1
+    83a4:	ea000001 	b	83b0 <l4>
+
+000083a8 <l3>:
+    83a8:	e0802001 	add	r2, r0, r1
+    83ac:	ea000001 	b	83b8 <l5>
+
+000083b0 <l4>:
+    83b0:	e3a0400a 	mov	r4, #10
+    83b4:	eafffffb 	b	83a8 <l3>
+
+000083b8 <l5>:
+    83b8:	ef000000 	svc	0x00000000
+
+
+else:
+			res[14] = k.zfill(8)
+			flag[14] = '1'
+			# branch offset +
+			if omemory[k][8] == '0':
+				imm24 = int(omemory[k][8:],2)
+				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
+				#print imm24
+			# branch offset - 2's complement
+			else:
+				imm24 = int(omemory[k][8:],2)
+				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
+				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
+				#print imm24	
+		
+
+
+eb000001 bl
+1110 101 1 000000000000000000000001
+e12fff1e bx lr
+1110 000 1 001011111111111100011110
+
+
+
+
+0000838c <sum>:
+    838c:	e3a00000 	mov	r0, #0
+    8390:	e3a01001 	mov	r1, #1
+    8394:	eb000001 	bl	83a0 <add>
+    8398:	e0800001 	add	r0, r0, r1
+    839c:	e12fff1e 	bx	lr
+
+000083a0 <add>:
+    83a0:	e2800003 	add	r0, r0, #3
+    83a4:	e12fff1e 	bx	lr
+
+
+
+
+
+
+
+
+
+
+
+
+
+

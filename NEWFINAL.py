@@ -70,14 +70,14 @@ for m in omemory.keys():
 				imm24 = int(omemory[k][8:],2)
 				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
-		#print k
+		
 
 	I=omemory[k][6]	
 	opcode = omemory[k][7:11]
 	rd = int(omemory[k][16:20],2)
 	rn = int(omemory[k][12:16],2)
 	shift=omemory[k][25:27]
-	
+	print k
 	# mov
 	if opcode=='1101':
 		if I=='0':	# operand is register

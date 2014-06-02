@@ -46,7 +46,8 @@ start_point = int(lines[0],16)
 memory = dict()		# make original input as dict
 res = dict()		# make new output as dict
 flag =dict()		# make flag to differenciate string and integer
-
+imm24=0
+cmptemp = 0		#set cmptemp's base value
 
 # read values and address to memory
 for l in lines[1:]:
@@ -65,17 +66,18 @@ omemory=collections.OrderedDict(sorted(memory.items()))
 for n in omemory:
 	omemory[n]=bin(omemory[n]).lstrip('0b').zfill(32)
 
-#set cmptemp's base value
-cmptemp = 0
+
 
 # write new key(register) and value(result) to res
-for k in omemory.keys():
-
-	I=omemory[k][6]		
-	opcode = omemory[k][7:11]
-	rd = int(omemory[k][16:20],2)
-	rn = int(omemory[k][12:16],2)
-	shift=omemory[k][25:27]
+k = '0'
+while(1):
+	if k == '0':
+		k = omemory.keys()[0]
+	else:
+		k=hex(int(k,16)+4).lstrip('0x')
+	
+	branch = omemory[k][4:7]
+	linkbit = omemory[k][7]	
 
 	S = omemory[k][11]
 
@@ -111,6 +113,44 @@ for k in omemory.keys():
 		else: continue
 	
 	else: pass
+
+	
+	#Bx lr
+	if omemory[k][8:] == '001011111111111100011110':
+		k = hex(int(res[14],16)+4).lstrip('0x')
+	# branch
+	if branch == '101':
+		if linkbit == '0':
+			# branch offset +
+			if omemory[k][8] == '0':
+				imm24 = int(omemory[k][8:],2)
+				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
+
+			# branch offset - 2's complement
+			else:
+				imm24 = int(omemory[k][8:],2)
+				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
+				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
+
+		else:
+			res[14] = k.zfill(8)
+			flag[14] = '1'
+			# branch offset +
+			if omemory[k][8] == '0':
+				imm24 = int(omemory[k][8:],2)
+				k = hex(imm24*4 + 8 + int(k,16)).lstrip('0x')
+
+			# branch offset - 2's complement
+			else:
+				imm24 = int(omemory[k][8:],2)
+				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
+				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
+
+	I=omemory[k][6]		
+	opcode = omemory[k][7:11]
+	rd = int(omemory[k][16:20],2)
+	rn = int(omemory[k][12:16],2)
+	shift=omemory[k][25:27]
 
 	#processing
 	# cmp
@@ -226,7 +266,7 @@ for k in omemory.keys():
 	
 
 	# and
-	elif opcode == '0000':
+	elif opcode == '0000' and branch != '101':
 	
 		if I=='0':	#operand is register
 			rm = int(omemory[k][28:32],2)
@@ -309,12 +349,12 @@ for k in omemory.keys():
 		res[n] = (int(k,16)+ 8)
 
 		flag[n] = '0'
-
+		break
 	else:
 		n=15
 		res[n]= (int(k,16)+ 8)
 		flag[n] = '0'
-
+		break
 
 reg = res.items()	# make res as list
 reg.sort()		# sort res list
@@ -323,6 +363,7 @@ reg.sort()		# sort res list
 
 # initialize unexist register
 for k in range(16):
+
 	if k !=reg[k][0]:
 		flag[k]='0'
 		reg.insert(k,(k,0))
@@ -338,4 +379,5 @@ for i in range(len(showlist)):
 		print '%-8s' % showlist[i],'%0.8x' % reg[i][1]
 	else:
 		print '%-8s' % showlist[i], reg[i][1]	
+
 
