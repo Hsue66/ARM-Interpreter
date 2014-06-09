@@ -186,7 +186,18 @@ while(1):
 			res[rd] = operand
 	
 			flag[rd] = '0'
-		
+	
+	# mul
+	elif (omemory[k][4:10]=='000000')and(omemory[k][24:28]=='1001'):
+		rd=int(omemory[k][12:16],2)
+		rm=int(omemory[k][28:32],2)
+		rs=int(omemory[k][20:24],2)		
+		res[rd]=res[rm]*res[rs]
+		if S =='1':
+			cmptempt = res[rd]
+				
+		flag[rd]='0'	
+
 	# add
 	elif opcode=='0100':
 		if I=='0':	# operand is register
