@@ -1,7 +1,9 @@
 import sys
 import collections
 
+# shift operation function
 def do_shift(rd,shift,k):
+	# shift count value	
 	amount=int(omemory[k][20:25],2)
 		
 	# lsl
@@ -35,9 +37,13 @@ def do_shift(rd,shift,k):
 
 		flag[rd] = '1'
 	return result
+
+
+
 temp_rm = 0
 temp_ldr = 0
 temp_str = 0
+
 def single_date(omemory,k,offset12,rn, rd,res):
 		pre_post = omemory[k][7]
 		up_down = omemory[k][8]
@@ -318,11 +324,6 @@ def single_date(omemory,k,offset12,rn, rd,res):
 
 		return result
 
-# read input.txt
-lines = sys.stdin.readlines()
-
-# read first line as start_point 
-start_point = int(lines[0],16)
 
 
 memory = dict()		# make original input as dict
@@ -334,9 +335,21 @@ pushlist=list()
 poplist=list()
 popreglist=list()
 
-imm24=0
-cmptemp = 0		#set cmptemp's base value
-rn_add = 0
+imm24=0			# branch offset 24bit integer
+cmptemp = 0		# set cmptemp's base value
+rn_add = 0		# rd's addresss(in ldr/str)	
+k = '0'			# initialize address
+store=0			# push amount
+push=0			# flag for push
+
+
+# read input.txt
+lines = sys.stdin.readlines()
+
+# read first line as start_point 
+start_point = int(lines[0],16)
+
+
 # read values and address to memory
 for l in lines[1:]:
 	try:
@@ -355,20 +368,23 @@ for n in omemory:
 	omemory[n]=bin(omemory[n]).lstrip('0b').zfill(32)
 
 # initialize register
-for k in range(16):
-	if k==13: 		# initialize stackpointer
-		res[k]=int(omemory.keys()[0],16)+4
-		flag[k]='0'
+for init in range(16):
+	if init==13: 		
+		# initialize stackpointer
+		res[init]=int(omemory.keys()[0],16)-4
+		flag[init]='0'
 	else:
-		res[k] = 0
-		flag[k] = '0'
+		res[init] = 0
+		flag[init] = '0'
+
+
 
 
 # write new key(register) and value(result) to res
-store=0
-k = '0'
 while(1):
-	if k == '0':
+	print k
+	
+	if k == '0':	# if k=0, make start_point as start address
 		k = hex(start_point).lstrip('0x')
 	else:
 		k=hex(int(k,16)+4).lstrip('0x')
@@ -430,9 +446,11 @@ while(1):
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
 
 		else:
-			res[14] = k.zfill(8)
+			res[14] = k.zfill(8)			# set load register 
 			flag[14] = '1'
-			pushlist[0]=(pushlist[0][0],res[14])	# update lr of pushlist
+
+			if push==1:
+				pushlist[0]=(pushlist[0][0],res[14])	# update lr of pushlist
 
 			# branch offset +
 			if omemory[k][8] == '0':
@@ -445,6 +463,7 @@ while(1):
 				imm24 = int(bin((~imm24+1)&0xFF).lstrip('0b'),2)
 				k= hex(-imm24*4 + 8 + int(k,16)).lstrip('0x')
 
+	# seperate omemory each part
 	I=omemory[k][6]		
 	opcode = omemory[k][7:11]
 	rd = int(omemory[k][16:20],2)
@@ -452,6 +471,8 @@ while(1):
 	shift=omemory[k][25:27]
 	sdt = omemory[k][4:6]
 	pushpop=omemory[k][4:7]
+	
+
 
 	#processing
 	# cmp
@@ -476,15 +497,17 @@ while(1):
 		
 		# store to memory
 		if omemory[k][11]=='0': 
+			push=1
 			for a in range(len(registerlist)):
 				if registerlist[a]=='1':
 					store +=1
-					pushlist.append((res[rn]-4*store,res[15-a]))
+					# make list with stack_pointer and register_value
+					pushlist.append((res[rn]-4*(store-1),res[15-a]))
 			
 		# load from memory
 		else:
 			# if pop{pc} : break 
-			if registerlist[0]=='1':
+			if registerlist[0]=='1':	
 				res[15]=(int(k,16)+ 8)
 				break
 			
@@ -498,7 +521,8 @@ while(1):
 			# pop		
 			for i in popreglist:	
 				poplist=pushlist.pop()
-				res[i]=poplist[1]		
+				res[13]=poplist[0]	# pop stack_pointer
+				res[i]=poplist[1]	# pop register_value
 
 
 	# mov
@@ -685,6 +709,8 @@ while(1):
 			res[rd]=result.zfill(8)
 			
 			flag[rd]='1'		
+
+
 	# LDR / STR
 	elif sdt == '01':
 		offset12 = int(omemory[k][28:32],2)
@@ -699,6 +725,7 @@ while(1):
 				res[rd] = single_date(omemory,k,offset12,rd,rn_add,res)
 			flag[rd]='0'
 
+
 	# swi
 	elif opcode=='1000' and sdt != '01':
 		n=15
@@ -706,6 +733,8 @@ while(1):
 
 		flag[n] = '0'
 		break
+
+
 
 reg = res.items()	# make res as list
 
