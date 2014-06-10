@@ -1,6 +1,6 @@
 import sys
 import collections
-import copy
+
 def do_shift(rd,shift,k):
 	amount=int(omemory[k][20:25],2)
 		
@@ -35,18 +35,22 @@ def do_shift(rd,shift,k):
 
 		flag[rd] = '1'
 	return result
-
+temp_rm = 0
 temp_ldr = 0
 temp_str = 0
-def single_date(omemory,k,offset12,rn, rd):
+def single_date(omemory,k,offset12,rn, rd,res):
 		pre_post = omemory[k][7]
 		up_down = omemory[k][8]
 		byte_word = omemory[k][9]
 		write_back = omemory[k][10]
 		load_store_bit = omemory[k][11]
+
+		shift=omemory[k][25:27]
+		rm = int(omemory[k][28:32],2)
 		result = 0
 		global temp_ldr
 		global temp_str
+		global temp_rm
 		if I == '0':
 			if pre_post == '0':
 				if up_down == '0':
@@ -175,6 +179,7 @@ def single_date(omemory,k,offset12,rn, rd):
 								print 'a'
 							#LDR
 							elif load_store_bit == '1':
+								print 'a'
 						elif write_back == '1':
 							#STR
 							if load_store_bit == '0':
@@ -187,18 +192,16 @@ def single_date(omemory,k,offset12,rn, rd):
 				if up_down == '0':
 					if byte_word == '0':
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								result = int(hex(id(rd) - temp_str).lstrip('0x'),16)
-								temp_str = offset12
-							#LDR
-							elif load_store_bit == '1':
-
-								if temp_ldr == 0:
-									result = rd
+							#STR / LDR
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) - do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:
+									
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
 								else:
-									result = int(hex(id(rd) - temp_ldr).lstrip('0x'),16)
-								temp_ldr = offset12
+									result = int(hex(id(rd) - res[temp_rm]).lstrip('0x'),16)
+							temp_rm = rm
 					elif byte_word == '1':
 						if write_back == '0':
 							#STR
@@ -210,19 +213,16 @@ def single_date(omemory,k,offset12,rn, rd):
 				elif up_down == '1':
 					if byte_word == '0':
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								#001000
-								result = int(hex(id(rd) + temp_str).lstrip('0x'),16)
-								temp_str = offset12
-							#LDR
-							elif load_store_bit == '1':
-								#001001
-								if temp_ldr == 0:
-									result = rd
+							#STR / LDR
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) + do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:
+									
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
 								else:
-									result = int(hex(id(rd) + temp_ldr).lstrip('0x'),16)
-								temp_ldr = offset12
+									result = int(hex(id(rd) + res[temp_rm]).lstrip('0x'),16)
+							temp_rm = rm
 					elif byte_word == '1':
 						if write_back == '0':
 							#STR
@@ -235,30 +235,29 @@ def single_date(omemory,k,offset12,rn, rd):
 				if up_down == '0':
 					if byte_word == '0':
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								temp_str = offset12
-								result = int(hex(id(rd) - temp_str).lstrip('0x'),16)
-								temp_str = 0
-							#LDR
-							elif load_store_bit == '1':
-
-								temp_ldr = offset12
-								if temp_ldr == 0:
-									result = rd
+							#STR / LDR
+							temp_rm = rm
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) - do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:
+								
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
 								else:
-									result = int(hex(id(rd) - temp_ldr).lstrip('0x'),16)
-									temp_ldr = 0
-						elif write_back == '1':
-							#STR
-							if load_store_bit == '0':
-								temp_str = offset12
-								result = int(hex(id(rd) - temp_str).lstrip('0x'),16)
-							#LDR
-							elif load_store_bit == '1':
-								temp_ldr = offset12
-								result = int(hex(id(rd) - temp_ldr).lstrip('0x'),16)
+									result = int(hex(id(rd) - res[temp_rm]).lstrip('0x'),16)
+							temp_rm = 0
 
+						elif write_back == '1':
+							#STR / LDR
+							temp_rm = rm
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) - do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:
+								
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
+								else:
+									result = int(hex(id(rd) -res[temp_rm]).lstrip('0x'),16)
 					elif byte_word == '1':
 						if write_back == '0':
 							#STR
@@ -278,31 +277,29 @@ def single_date(omemory,k,offset12,rn, rd):
 				elif up_down == '1':
 					if byte_word == '0':
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								temp_str = offset12
-								result = int(hex(id(rd) + temp_str).lstrip('0x'),16)
-								temp_str = 0
-							#LDR
-							elif load_store_bit == '1':
-								temp_ldr = offset12
-								if temp_ldr == 0:
-									result = rd
+							#STR / LDR
+							temp_rm = rm
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) + do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:	
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
 								else:
-									result = int(hex(id(rd) + temp_ldr).lstrip('0x'),16)
-									temp_ldr = 0
-								
-						elif write_back == '1':
-							#STR
-							if load_store_bit == '0':
-								temp_str = offset12
-								result = int(hex(id(rd) + temp_str).lstrip('0x'),16)
-							#LDR
-							elif load_store_bit == '1':
-								temp_ldr = offset12
-								result = int(hex(id(rd) + temp_ldr).lstrip('0x'),16)
-								
+									print rd,res[temp_rm]
+									result = int(hex(id(rd) + res[temp_rm]).lstrip('0x'),16)
+							temp_rm = 0
 
+						elif write_back == '1':
+							#STR / LDR
+							temp_rm = rm
+							if omemory[k][20:28] != '00000000':
+								result = int(hex(id(rd) + do_shift(rn,shift,k)).lstrip('0x'),16)
+							else:
+									
+								if temp_rm == 0:
+									result = int(hex(id(rd)).lstrip('0x'),16)
+								else:
+									result = int(hex(id(rd) + res[temp_rm]).lstrip('0x'),16)
 					elif byte_word == '1':
 						if write_back == '0':
 							#STR
@@ -310,6 +307,7 @@ def single_date(omemory,k,offset12,rn, rd):
 								print 'a'
 							#LDR
 							elif load_store_bit == '1':
+								print 'a'
 						elif write_back == '1':
 							#STR
 							if load_store_bit == '0':
@@ -644,14 +642,14 @@ while(1):
 	elif sdt == '01':
 		offset12 = int(omemory[k][28:32],2)
 		if omemory[k][11] == '0':
-			res[rn] = single_date(omemory,k,offset12,rn, rd)
+			res[rn] = single_date(omemory,k,offset12,rn, rd,res)
 			rn_add = rd
 			flag[rn]='0'
 		elif omemory[k][11] == '1':
-			if offset12 == 0:
-				res[rd] = res[single_date(omemory,k,offset12,rd, rn_add)]
+			if offset12 == 0 and I == '0':
+				res[rd] = res[single_date(omemory,k,offset12,rd, rn_add,res)]
 			else:
-				res[rd] = single_date(omemory,k,offset12,rd,rn_add)
+				res[rd] = single_date(omemory,k,offset12,rd,rn_add,res)
 			flag[rd]='0'
 
 	# swi
