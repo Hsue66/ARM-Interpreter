@@ -328,6 +328,12 @@ start_point = int(lines[0],16)
 memory = dict()		# make original input as dict
 res = dict()		# make new output as dict
 flag =dict()		# make flag to differenciate string and integer
+
+# list for pushpop
+pushlist=list()
+poplist=list()
+popreglist=list()
+
 imm24=0
 cmptemp = 0		#set cmptemp's base value
 rn_add = 0
@@ -348,11 +354,18 @@ omemory=collections.OrderedDict(sorted(memory.items()))
 for n in omemory:
 	omemory[n]=bin(omemory[n]).lstrip('0b').zfill(32)
 
+# initialize register
 for k in range(16):
-	res[k] = 0
-	flag[k] = '0'
+	if k==13: 		# initialize stackpointer
+		res[k]=int(omemory.keys()[0],16)+4
+		flag[k]='0'
+	else:
+		res[k] = 0
+		flag[k] = '0'
+
 
 # write new key(register) and value(result) to res
+store=0
 k = '0'
 while(1):
 	if k == '0':
@@ -419,6 +432,8 @@ while(1):
 		else:
 			res[14] = k.zfill(8)
 			flag[14] = '1'
+			pushlist[0]=(pushlist[0][0],res[14])	# update lr of pushlist
+
 			# branch offset +
 			if omemory[k][8] == '0':
 				imm24 = int(omemory[k][8:],2)
@@ -436,6 +451,7 @@ while(1):
 	rn = int(omemory[k][12:16],2)
 	shift=omemory[k][25:27]
 	sdt = omemory[k][4:6]
+	pushpop=omemory[k][4:7]
 
 	#processing
 	# cmp
@@ -453,7 +469,38 @@ while(1):
 			operand = int(omemory[k][24:32],2)
 		
 			cmptemp = res[rn]-operand
+
+	# pushpop
+	if pushpop=='100':
+		registerlist=omemory[k][16:32]
+		
+		# store to memory
+		if omemory[k][11]=='0': 
+			for a in range(len(registerlist)):
+				if registerlist[a]=='1':
+					store +=1
+					pushlist.append((res[rn]-4*store,res[15-a]))
+			
+		# load from memory
+		else:
+			# if pop{pc} : break 
+			if registerlist[0]=='1':
+				res[15]=(int(k,16)+ 8)
+				break
+			
+			# make pop register list
+			for a in range(len(registerlist)):
+				if registerlist[a]=='1':
+					popreglist.append(15-a)
+		
+			popreglist.sort()
 	
+			# pop		
+			for i in popreglist:	
+				poplist=pushlist.pop()
+				res[i]=poplist[1]		
+
+
 	# mov
 	elif opcode=='1101'and sdt != '01':
 		if I=='0':	# operand is register
