@@ -40,16 +40,16 @@ def do_shift(rd,shift,k):
 
 
 
-temp_rm = 0
-temp_ldr = 0
-temp_str = 0
+temp_rm = 0	# temp shift rm
+temp_ldr = 0	# temp offset ldr
+temp_str = 0	# temp offset str
 
 def single_date(omemory,k,offset12,rn, rd,res):
-		pre_post = omemory[k][7]
-		up_down = omemory[k][8]
-		byte_word = omemory[k][9]
-		write_back = omemory[k][10]
-		load_store_bit = omemory[k][11]
+		pre_post = omemory[k][7] 	# pre : add offsetbefore transfer post : add offset after transfer
+		up_down = omemory[k][8]		# up : add offset Down : sub offset
+		byte_word = omemory[k][9]	# byte / word quantity
+		write_back = omemory[k][10]	# write address into base
+		load_store_bit = omemory[k][11]	# load/store flag 
 
 		shift=omemory[k][25:27]
 		rm = int(omemory[k][28:32],2)
@@ -57,6 +57,7 @@ def single_date(omemory,k,offset12,rn, rd,res):
 		global temp_ldr
 		global temp_str
 		global temp_rm
+		# operand is integer
 		if I == '0':
 			if pre_post == '0':
 				if up_down == '0':
@@ -176,7 +177,6 @@ def single_date(omemory,k,offset12,rn, rd,res):
 							elif load_store_bit == '1':
 								temp_ldr = offset12
 								result = int(hex(id(rd) + temp_ldr).lstrip('0x'),16)
-								
 
 					elif byte_word == '1':
 						if write_back == '0':
@@ -193,6 +193,7 @@ def single_date(omemory,k,offset12,rn, rd,res):
 							#LDR
 							elif load_store_bit == '1':	
 								print 'a'
+		# operand is register
 		else:
 			if pre_post == '0':
 				if up_down == '0':
@@ -714,13 +715,17 @@ while(1):
 	# LDR / STR
 	elif sdt == '01':
 		offset12 = int(omemory[k][28:32],2)
+		# STR
 		if omemory[k][11] == '0':
 			res[rn] = single_date(omemory,k,offset12,rn, rd,res)
 			rn_add = rd
 			flag[rn]='0'
+		# LDR
 		elif omemory[k][11] == '1':
+			# LDR and operand integer
 			if offset12 == 0 and I == '0':
 				res[rd] = res[single_date(omemory,k,offset12,rd, rn_add,res)]
+			# LDR and operand register
 			else:
 				res[rd] = single_date(omemory,k,offset12,rd,rn_add,res)
 			flag[rd]='0'
