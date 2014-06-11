@@ -343,6 +343,11 @@ k = '0'			# initialize address
 store=0			# push amount
 push=0			# flag for push
 
+			# set CPSR flags
+carryflag = 0
+overflowflag = 0
+zeroflag = 0
+negativeflag = 0
 
 # read input.txt
 lines = sys.stdin.readlines()
@@ -403,27 +408,27 @@ while(1):
 	if cond == '1110': pass
 	#eq
 	elif cond == '0000':
-		if cmptemp == 0: pass
+		if zeroflag == 1: pass
 		else: continue
 	#ne
 	elif cond == '0001':
-		if ~(cmptemp == 0): continue
+		if ~(zeroflag == 1): continue
 		else: pass
 	#ge
 	elif cond == '1010':
-		if cmptemp >= 0: pass
+		if zeroflag == 1 or negativeflag == 0 : pass
 		else: continue
 	#le
 	elif cond == '1101':
-		if cmptemp <= 0: pass
+		if zeroflag == 1 or negativeflag == 1 : pass
 		else: continue
 	#gt
 	elif cond == '1100':
-		if cmptemp > 0: pass
+		if zeroflag == 0 and negativeflag == 0 : pass
 		else: continue
 	#lt
 	elif cond == '1011':
-		if cmptemp < 0: pass
+		if zeroflag == 0 and negativeflag == 1 : pass
 		else: continue
 	
 	else: pass
@@ -479,18 +484,56 @@ while(1):
 	# cmp
 	if opcode=='1010' and sdt != '01':
 		cmptemp = 0
+		carryflag = 0
+		overflowflag = 0
+		zeroflag = 0
+		negativeflag = 0
+
 		if I=='0':	# operand is register
 			rm = int(omemory[k][28:32],2)
 			
 			if omemory[k][20:28] !='00000000':
 				cmptemp=res[rn]-do_shift(rd,shift,k)
+				if cmptemp > 255:
+					if res[rn] > 0 and do_shift(rd,shift,k) > 0:
+						carryflag = 1
+				elif cmptemp > 127:
+					if res[rn] < 0 or do_shift(rd,shift,k) < 0:
+						overflowflag = 1
+				elif cmptemp < 0:
+					negativeflag = 1
+				elif cmptemp == 0:
+					zeroflag = 1
+				else: pass
 			else:
 				cmptemp = res[rn]-res[rm]
+				if cmptemp > 255:
+					if res[rn] > 0 and res[rm] > 0:
+						carryflag = 1
+				elif cmptemp > 127:
+					if res[rn] < 0 or res[rm] < 0:
+						overflowflag = 1
+				elif cmptemp < 0:
+					negativeflag = 1
+				elif cmptemp == 0:
+					zeroflag = 1
+				else: pass
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 		
 			cmptemp = res[rn]-operand
+			if cmptemp > 255:
+				if res[rn] > 0 and operand > 0:
+					carryflag = 1
+			elif cmptemp > 127:
+				if res[rn] < 0 or operand < 0:
+					overflowflag = 1
+			elif cmptemp < 0:
+				negativeflag = 1
+			elif cmptemp == 0:
+				zeroflag = 1
+			else: pass
 
 	# pushpop
 	if pushpop=='100':
@@ -552,8 +595,23 @@ while(1):
 		rs=int(omemory[k][20:24],2)		
 		res[rd]=res[rm]*res[rs]
 		if S =='1':
+			carryflag = 0
+			overflowflag =0
+			zeroflag = 0
+			negativeflag = 0
 			cmptemp = res[rd]
-				
+			if cmptemp > 255:
+				if res[rm] > 0 and res[rs] > 0:
+					carryflag = 1
+			elif cmptemp > 127:
+				if res[rm] < 0 or res[rs] < 0:
+					overflowflag = 1
+			elif cmptemp < 0:
+				negativeflag = 1
+			elif cmptemp == 0:
+				zeroflag = 1
+			else: pass
+	
 		flag[rd]='0'
 
 	# add
@@ -564,12 +622,41 @@ while(1):
 			if omemory[k][20:28] !='00000000':
 				res[rd]=do_shift(rd,shift,k)+res[rn]
 				if S =='1':
-					cmptemp = res[rd]
-					flag[rd] = '0'
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and do_shift(rd,shift,k) > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or do_shift(rd,shift,k) < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
+
+				flag[rd] = '0'
 			else:
 				res[rd]=res[rm]+res[rn]
                                 if S =='1':
-                                	cmptemp = res[rd]
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and res[rm] > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or res[rm] < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
 				
 				flag[rd] = '0'
 
@@ -577,7 +664,21 @@ while(1):
 			operand = int(omemory[k][24:32],2)
 			res[rd] = operand+res[rn]
                         if S =='1':
-                                cmptemp = res[rd]
+				carryflag = 0
+				overflowflag = 0
+				zeroflag = 0
+				negativeflag = 0
+				if res[rd] > 255:
+					if res[rn] > 0 and operand > 0:
+						carryflag = 1
+				elif res[rd] > 127:
+					if res[rn] < 0 or operand < 0:
+						overflowflag = 1
+				elif res[rd] < 0:
+					negativeflag = 1
+				elif res[rd] == 0:
+					zeroflag = 1
+				else: pass
 	
 			flag[rd] = '0'
 
@@ -590,13 +691,41 @@ while(1):
 			if omemory[k][20:28] !='00000000':
 				res[rd]=res[rn]-do_shift(rd,shift,k)
 				if S == '1':
-					cmptemp = res[rd]
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and do_shift(rd,shift,k) > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or do_shift(rd,shift,k) < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
 					
 					flag[rd] = '0'
 			else:
 				res[rd]=res[rn]-res[rm]
 				if S == '1':
-					cmptemp = res[rd]
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and res[rm] > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or res[rm] < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
 				
 				flag[rd] = '0'
 
@@ -604,7 +733,21 @@ while(1):
 			operand = int(omemory[k][24:32],2)
 			res[rd] = res[rn]-operand
 			if S == '1':
-				cmptemp = res[rd]
+				carryflag = 0
+				overflowflag = 0
+				zeroflag = 0
+				negativeflag = 0
+				if res[rd] > 255:
+					if res[rn] > 0 and operand > 0:
+						carryflag = 1
+				elif res[rd] > 127:
+					if res[rn] < 0 or operand < 0:
+						overflowflag = 1
+				elif res[rd] < 0:
+					negativeflag = 1
+				elif res[rd] == 0:
+					zeroflag = 1
+				else: pass
 			
 			flag[rd] = '0'
 
@@ -616,20 +759,62 @@ while(1):
 			if omemory[k][20:28] !='00000000':
 				res[rd]=do_shift(rd,shift,k)-res[rn]
 				if S =='1':
-					cmptemp = res[rd]
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and do_shift(rd,shift,k) > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or do_shift(rd,shift,k) < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
 
-					flag[rd] = '0'
+				flag[rd] = '0'
 			else:
 				res[rd]=res[rm]-res[rn]
 				if S =='1':
-					cmptemp = res[rd]
+					carryflag = 0
+					overflowflag = 0
+					zeroflag = 0
+					negativeflag = 0
+					if res[rd] > 255:
+						if res[rn] > 0 and res[rm] > 0:
+							carryflag = 1
+					elif res[rd] > 127:
+						if res[rn] < 0 or res[rm] < 0:
+							overflowflag = 1
+					elif res[rd] < 0:
+						negativeflag = 1
+					elif res[rd] == 0:
+						zeroflag = 1
+					else: pass
 				flag[rd] = '0'
 
 		else:		# operand is integer
 			operand = int(omemory[k][24:32],2)
 			res[rd] = operand-res[rn]
                         if S =='1':
-                                cmptemp = res[rd]
+				carryflag = 0
+				overflowflag = 0
+				zeroflag = 0
+				negativeflag = 0
+				if res[rd] > 255:
+					if res[rn] > 0 and operand > 0:
+						carryflag = 1
+				elif res[rd] > 127:
+					if res[rn] < 0 or operand < 0:
+						overflowflag = 1
+				elif res[rd] < 0:
+					negativeflag = 1
+				elif res[rd] == 0:
+					zeroflag = 1
+				else: pass
 
 			flag[rd] = '0'
 	
@@ -752,9 +937,4 @@ for i in range(len(showlist)):
 	if flag[i][0]=='0':	
 		print '%-8s' % showlist[i],'%0.8x' % reg[i][1]
 	else:
-		print '%-8s' % showlist[i], reg[i][1]	
-
-
-
-
-
+		print '%-8s' % showlist[i], reg[i][1]
