@@ -36,6 +36,29 @@ def do_shift(rd,shift,k):
 		flag[rd] = '1'
 	return result
 
+def accumulate_memory(accu,val,addrmemory,byte_word):
+	if byte_word == '1':
+		addrmemory.pop(accu)				
+		addrmemory.insert(accu,(accu,val[6:8]))
+		accu+=1
+
+		addrmemory.pop(accu)
+		addrmemory.insert(accu,(accu,val[4:6]))
+		accu+=1
+
+		addrmemory.pop(accu)
+		addrmemory.insert(accu,(accu,val[2:4]))
+		accu+=1
+
+		addrmemory.pop(accu)
+		addrmemory.insert(accu,(accu,val[0:2]))
+		accu+=1
+	else:
+		addrmemory.pop(accu)				
+		addrmemory.insert(accu,(accu,val[6:8]))
+		accu+=1
+	return addrmemory
+
 # read input.txt
 lines = sys.stdin.readlines()
 
@@ -244,518 +267,193 @@ while(1):
 		byte_word = omemory[k][9]	# byte / word quantity
 		write_back = omemory[k][10]	# write address into base
 		load_store_bit = omemory[k][11]	# load/store flag 
+
 		if I == '0':
 			if pre_post == '0':
-				if up_down == '1':
-					if byte_word == '0':
-						#STR
-						if load_store_bit == '0':
-							val=(hex(res[rd]).lstrip('0x')).zfill(8)
+				if byte_word == '0':
+					#STR
+					if load_store_bit == '0':
+						val=(hex(res[rd]).lstrip('0x')).zfill(8)
 
-							indexmemory.append((rn+res[rn],accu))	
-							addrmemory.pop(accu)				
-							addrmemory.insert(accu,(accu,val[6:8]))
-							accu+=1
+						indexmemory.append((rn+res[rn],accu))	
 
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[4:6]))
-							accu+=1
+						accumulate_memory(accu,val,addrmemory,byte_word)
+						accu=0
 
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[2:4]))
-							accu+=1
-
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[0:2]))
-							accu+=1
-							accu=0
-
-							if offset != 0:
-								accu = offset
-							else:
+						if offset != 0:
+							accu = offset
+						else:
+							if up_down == '1':
 								accu+=res[rn]
-
-							for inmemo in range(len(indexmemory)-1):
-								indexmemory.pop()
-						#LDR
-						elif load_store_bit == '1':	
-							index=0
-							out=""
-							outmemory=list()
-							for i in range(len(indexmemory)):
-								if indexmemory[i][0]==rn:
-									index=indexmemory[i][1]
-							index+=temp_index
-								
-							for i in range(4):	
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-							if offset !=0:
-								temp_index = index + offset
-
-							outmemory.reverse()
-							res[rd]=int(out.join(outmemory),16)
-					elif byte_word == '1':
-						#STR
-						if load_store_bit == '0':
-							val=(hex(res[rd]).lstrip('0x')).zfill(8)
-
-							indexmemory.append((rn+res[rn],accu))	
-							addrmemory.pop(accu)				
-							addrmemory.insert(accu,(accu,val[7:8]))
-							accu+=1
-							accu=0
-
-							if offset != 0:
-								accu = offset
-							else:
-								accu+=res[rn]
-
-							for inmemo in range(len(indexmemory)-1):
-								indexmemory.pop()
-						#LDR
-						elif load_store_bit == '1':
-								
-							index=0
-							out=""
-							outmemory=list()
-							for i in range(len(indexmemory)):
-								if indexmemory[i][0]==rn:
-									index=indexmemory[i][1]
-							index+=temp_index
-						
-							outmemory.append(addrmemory[index][1])
-
-							if offset !=0:
-								temp_index = index + offset
-
-							outmemory.reverse()
-							res[rd]=int(out.join(outmemory),16)
-				elif up_down == '0':
-					if byte_word == '0':
-						#STR
-						if load_store_bit == '0':
-							val=(hex(res[rd]).lstrip('0x')).zfill(8)
-
-							indexmemory.append((rn+res[rn],accu))	
-							addrmemory.pop(accu)				
-							addrmemory.insert(accu,(accu,val[6:8]))
-							accu+=1
-
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[4:6]))
-							accu+=1
-
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[2:4]))
-							accu+=1
-
-							addrmemory.pop(accu)
-							addrmemory.insert(accu,(accu,val[0:2]))
-							accu+=1
-							accu=0
-
-							if offset != 0:
-								accu = offset
-							else:
-								accu-=res[rn]
-							for inmemo in range(len(indexmemory)-1):
-								indexmemory.pop()
-						#LDR
-						elif load_store_bit == '1':
-								
-							index=0
-							out=""
-							outmemory=list()
-							for i in range(len(indexmemory)):
-								if indexmemory[i][0]==rn:
-									index=indexmemory[i][1]
-							index-=temp_index
-								
-							for i in range(4):	
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-							if offset !=0:
-								temp_index = index - offset
-
-							outmemory.reverse()
-							res[rd]=int(out.join(outmemory),16)
-
-					elif byte_word == '1':
-						#STR
-						if load_store_bit == '0':
-							val=(hex(res[rd]).lstrip('0x')).zfill(8)
-
-							indexmemory.append((rn+res[rn],accu))	
-							addrmemory.pop(accu)				
-							addrmemory.insert(accu,(accu,val[7:8]))
-							accu+=1
-							accu=0
-
-							if offset != 0:
-								accu = offset
 							else:
 								accu-=res[rn]
 
-							for inmemo in range(len(indexmemory)-1):
-								indexmemory.pop()
-						#LDR
-						elif load_store_bit == '1':
+						for inmemo in range(len(indexmemory)-1):
+							indexmemory.pop()
+					#LDR
+					elif load_store_bit == '1':	
+						index=0
+						out=""
+						outmemory=list()
+						for i in range(len(indexmemory)):
+							if indexmemory[i][0]==rn:
+								index=indexmemory[i][1]
+
+						if up_down == '1':
+							index+=temp_index
+						else:
+							index-=temp_index
+
+						for i in range(4):	
+							outmemory.append(addrmemory[index][1])
+							index-=1
+
+						if offset !=0:
+							if up_down == '1':
+								temp_index = index + offset
+							else:
+								temp_index = index + offset
+						outmemory.reverse()
+						res[rd]=int(out.join(outmemory),16)
+				elif byte_word == '1':
+					#STR
+					if load_store_bit == '0':
+						val=(hex(res[rd]).lstrip('0x')).zfill(8)
+
+						indexmemory.append((rn+res[rn],accu))	
+
+						accumulate_memory(accu,val,addrmemory,byte_word)
+						accu=0
+
+						if offset != 0:
+							accu = offset
+						else:
+							if up_down == '1':
+								accu+=res[rn]
+							else:
+								accu-=res[rn]
+
+						for inmemo in range(len(indexmemory)-1):
+							indexmemory.pop()
+					#LDR
+					elif load_store_bit == '1':
 								
-							index=0
-							out=""
-							outmemory=list()
-							for i in range(len(indexmemory)):
-								if indexmemory[i][0]==rn:
-									index=indexmemory[i][1]
+						index=0
+						out=""
+						outmemory=list()
+						for i in range(len(indexmemory)):
+							if indexmemory[i][0]==rn:
+								index=indexmemory[i][1]
+						if up_down == '1':
+							index+=temp_index
+						else:
 							index-=temp_index
 						
-							outmemory.append(addrmemory[index][1])
+						outmemory.append(addrmemory[index][1])
 
-							if offset !=0:
-								temp_index = index - offset
+						if offset !=0:
+							if up_down == '1':
+								temp_index = index + offset
+							else:
+								temp_index = index + offset
 
-							outmemory.reverse()
-							res[rd]=int(out.join(outmemory),16)
+						outmemory.reverse()
+						res[rd]=int(out.join(outmemory),16)
+		
 			elif pre_post == '1':
-				if up_down == '1':
-					if byte_word == '0':
+				if byte_word == '0':
+					#STR
+					if load_store_bit == '0':
+						val=(hex(res[rd]).lstrip('0x')).zfill(8)
+			
+						if offset != 0:
+							accu = offset
+						else:
+							if up_down == '1':
+								accu+=res[rn]
+							else:
+								accu-=res[rn]
+
+						indexmemory.append((rn+res[rn],accu))	
+
+						accumulate_memory(accu,val,addrmemory,byte_word)
+								
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
+							accu=0		
+								
+				
+						for inmemo in range(len(indexmemory)-1):
+							indexmemory.pop()
+					#LDR
+					elif load_store_bit == '1':
+						index=0
+						out=""
+						outmemory=list()
+						for i in range(len(indexmemory)):
+							if indexmemory[i][0]==rn:
+								index=indexmemory[i][1]
+
+						if offset !=0:
+							if up_down == '1':
+								index += offset
+							else:
+								index -= offset
+						else:
+							if write_back == '0':
+								index = 0
+
+						for i in range(4):	
+							outmemory.append(addrmemory[index][1])
+							index-=1
+
+						outmemory.reverse()
+						res[rd]=int(out.join(outmemory),16)
+				elif byte_word == '1':
+					#STR
+					if load_store_bit == '0':
+						val=(hex(res[rd]).lstrip('0x')).zfill(8)
 			
-								if offset != 0:
-									accu = offset
-								else:
-									accu+=res[rn]
+						if offset != 0:
+							accu = offset
+						else:
+							if up_down == '1':
+								accu+=res[rn]
+							else:
+								accu-=res[rn]
 
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[6:8]))
-								accu+=1
+						indexmemory.append((rn+res[rn],accu))
 
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[4:6]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[2:4]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[0:2]))
-								accu+=1
-								accu=0
-
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index + offset
-								else:
-									index = 0
-
-								for i in range(4):	
-									outmemory.append(addrmemory[index][1])
-									index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-						elif write_back == '1':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu+=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[6:8]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[4:6]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[2:4]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[0:2]))
-								accu+=1
-
-							#LDR
-							elif load_store_bit == '1':
-
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index + offset
-
-								for i in range(4):	
-									outmemory.append(addrmemory[index][1])
-									index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-
-					elif byte_word == '1':
+						accumulate_memory(accu,val,addrmemory,byte_word)	
+					
 						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu+=res[rn]
+							accu=0
 
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[7:8]))
-								accu=0
+						for inmemo in range(len(indexmemory)-1):
+							indexmemory.pop()
+					#LDR
+					elif load_store_bit == '1':
+						index=0
+						out=""
+						outmemory=list()
+						for i in range(len(indexmemory)):
+							if indexmemory[i][0]==rn:
+								index=indexmemory[i][1]
 
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
+						if offset !=0:
+							if up_down == '1':
+								index += offset
+							else:
+								index -= offset
+						else:
+							if write_back == '0':
+								index = 0
 
-								if offset !=0:
-									index = index + offset
-								else:
-									index = 0
+						outmemory.append(addrmemory[index][1])
+						index-=1
 
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-						elif write_back == '1':
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu+=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[7:8]))
-
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index + offset
-
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-				elif up_down == '0':
-					if byte_word == '0':
-						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu-=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[6:8]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[4:6]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[2:4]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[0:2]))
-								accu+=1
-								accu=0
-
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index - offset
-								else:
-									index = 0
-
-								for i in range(4):	
-									outmemory.append(addrmemory[index][1])
-									index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-						elif write_back == '1':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu-=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[6:8]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[4:6]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[2:4]))
-								accu+=1
-
-								addrmemory.pop(accu)
-								addrmemory.insert(accu,(accu,val[0:2]))
-								accu+=1
-
-							#LDR
-							elif load_store_bit == '1':
-
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index - offset
-
-								for i in range(4):	
-									outmemory.append(addrmemory[index][1])
-									index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-					elif byte_word == '1':
-						if write_back == '0':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu-=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[7:8]))
-								accu=0
-
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index - offset
-								else:
-									index = 0
-
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
-						elif write_back == '1':
-							#STR
-							if load_store_bit == '0':
-								val=(hex(res[rd]).lstrip('0x')).zfill(8)
-			
-								if offset != 0:
-									accu = offset
-								else:
-									accu-=res[rn]
-
-								indexmemory.append((rn+res[rn],accu))	
-								addrmemory.pop(accu)				
-								addrmemory.insert(accu,(accu,val[7:8]))
-
-								for inmemo in range(len(indexmemory)-1):
-									indexmemory.pop()
-							#LDR
-							elif load_store_bit == '1':
-								index=0
-								out=""
-								outmemory=list()
-								for i in range(len(indexmemory)):
-									if indexmemory[i][0]==rn:
-										index=indexmemory[i][1]
-
-								if offset !=0:
-									index = index - offset
-
-								outmemory.append(addrmemory[index][1])
-								index-=1
-
-								outmemory.reverse()
-								res[rd]=int(out.join(outmemory),16)
+						outmemory.reverse()
+						res[rd]=int(out.join(outmemory),16)
+	
 	################################
 
 	if inst=='00':
